@@ -12,4 +12,4 @@ class Postprocessing:
         for file_ in files:
             self.write_files(file_.path, file_.content)
 
-        self.process_files([file_.path for file_ in files])
+        self.process_files([file_.path for file_ in files])  # noqa: WPS441

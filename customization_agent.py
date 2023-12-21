@@ -8,10 +8,10 @@ from langchain.memory import ChatMessageHistory, ConversationSummaryBufferMemory
 import chainlit as cl
 from langchain_core.prompts import PromptTemplate
 
-from src.appication.containers import Container
-from src.appication.retriever import Vectorizer
+from src.application.containers import Container
+from src.application.retriever import Vectorizer
 from src.common.models import Chat
-from src.common.utils import check_and_write_files, write_file
+from src.common.handlers import check_and_write_files, write_file
 
 
 @cl.on_chat_start
@@ -19,15 +19,15 @@ from src.common.utils import check_and_write_files, write_file
 async def on_chat_start(chat: Chat = Provide[Container.chat]):
     vectorizer = Vectorizer(chat.embeddings)
     res = await cl.AskActionMessage(
-        content="Вырерите вариант чата.",
+        content='Вырерите вариант чата.',
         actions=[
-            cl.Action(name="big", value="big", label="Вопросы к большому документу (до 100Мб)"),
-            cl.Action(name="just", value="just", label="Простой диалог и вопросы к не большим документам (до 20Мб)")
+            cl.Action(name='big', value='big', label='Вопросы к большому документу (до 100Мб)'),
+            cl.Action(name='just', value='just', label='Простой диалог и вопросы к не большим документам (до 20Мб)')
         ]
     ).send()
-    if res and res.get("value") == "big":
+    if res and res.get('value') == 'big':
         files = await cl.AskFileMessage(
-            content="Загрузите файл", accept=["text/csv", "application/pdf"], max_size_mb=100,
+            content='Загрузите файл', accept=['text/csv', 'application/pdf'], max_size_mb=100,
         ).send()
 
         for file_ in files:
@@ -35,47 +35,47 @@ async def on_chat_start(chat: Chat = Provide[Container.chat]):
 
         vectorizer([file_.path for file_ in files])
 
-    cl.user_session.set("vectorizer", vectorizer)
+    cl.user_session.set('vectorizer', vectorizer)
 
     memory = ConversationSummaryBufferMemory(
         llm=chat.model,
-        memory_key="chat_history",
-        output_key="answer",
+        memory_key='chat_history',
+        output_key='answer',
         chat_memory=ChatMessageHistory(),
         return_messages=True,
     )
 
-    with open("templates/chat_templates.json", "r") as f:
+    with open('templates/chat_templates.json', 'r') as f:
         data = json.loads(f.read())['just_chain']
-        prompt = PromptTemplate(template=data, input_variables=["input", "history"])
+        prompt = PromptTemplate(template=data, input_variables=['input', 'history'])
 
-    cl.user_session.set("chat", chat)
-    cl.user_session.set("prompt", prompt)
-    cl.user_session.set("memory", memory)
+    cl.user_session.set('chat', chat)
+    cl.user_session.set('prompt', prompt)
+    cl.user_session.set('memory', memory)
 
 
 @cl.on_message
 async def main(message: cl.Message):
 
     files = check_and_write_files(message)
-    vectorizer = cl.user_session.get("vectorizer")
+    vectorizer = cl.user_session.get('vectorizer')
     vectorizer(files)
 
     # Create a chain that uses the Chroma vector store
-    chat = cl.user_session.get("chat")
-    plain_chain = LLMChain(llm=chat.model, prompt=cl.user_session.get("prompt"), memory=cl.user_session.get("memory"), output_key="answer")
-    tools = [Tool(name="История сообщений", func=plain_chain, description="Используется для вопросов получения информации об истории разговора.")]
+    chat = cl.user_session.get('chat')
+    plain_chain = LLMChain(llm=chat.model, prompt=cl.user_session.get('prompt'), memory=cl.user_session.get('memory'), output_key='answer')
+    tools = [Tool(name='История сообщений', func=plain_chain, description='Используется для вопросов получения информации об истории разговора.')]
 
     if vectorizer.index:
         files_chain = RetrievalQA.from_chain_type(
             chat.model,
-            chain_type="stuff",
+            chain_type='stuff',
             retriever=vectorizer.index.as_retriever(),
         )
         tool = Tool(
-                name="Векторизованное представление полученных файлов",
+                name='Векторизованное представление полученных файлов',
                 func=files_chain.run,
-                description="Используется для вопросов к документам.",
+                description='Используется для вопросов к документам.',
             )
         tools.append(tool)
     agent = initialize_agent(

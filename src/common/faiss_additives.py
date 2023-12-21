@@ -14,12 +14,11 @@ def get_sources(index: FAISS, raw: bool = True) -> List[str]:
     sources = []
     for item in index.docstore._dict:
         meta = index.docstore._dict[item].metadata
-        if "source" in meta:
-            if not meta["source"] in sources:
-                sources.append(meta["source"])
+        if 'source' in meta:
+            if not meta['source'] in sources:  # noqa: WPS508
+                sources.append(meta['source'])
 
-    sources = sources if raw else [basename(source) for source in sources]
-    return sources
+    return sources if raw else [basename(source) for source in sources]
 
 
 def match_sources(sources: List[str], index: FAISS):
@@ -27,15 +26,13 @@ def match_sources(sources: List[str], index: FAISS):
 
     for item in index.docstore._dict:
         meta = index.docstore._dict[item].metadata
-        if "source" in meta:
-            if meta["source"] in sources or basename(meta["source"]) in sources:
+        if 'source' in meta:
+            if meta['source'] in sources or basename(meta['source']) in sources:
                 matched_keys.append(item)
     return matched_keys
 
 
-def concatenate_indexes(
-        vectorstore: FAISS, embeddings, path: str,
-) -> Union[FAISS, None]:
+def concatenate_indexes(vectorstore: FAISS, embeddings, path: str) -> Union[FAISS, None]:
     """
     Concatenate vectorstore and existing indexes
     :param vectorstore: vectorstore for concatenation
@@ -45,9 +42,8 @@ def concatenate_indexes(
     """
     try:
         faiss_index = FAISS.load_local(path, embeddings)
-    except Exception as e:
-        print("Vector base with path {} does not exist".format(path))
-        print(e)
+    except Exception:
+        print(f'Vector base with path {path} does not exist')  # noqa: WPS421
         return None
 
     if not vectorstore:

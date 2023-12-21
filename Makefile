@@ -8,31 +8,29 @@ ANSIBLE_FLAGS := -e docker_image=$(IMAGE_NAME) -e docker_tag=$(DOCKER_TAG) \
 build:
 	docker build -f docker/app/Dockerfile -t $(IMAGE_NAME) .
 
-# run the container
 run_docker_app:
-	echo "Starting docker container" && \
+	echo "Starting chainlit app container" && \
 	docker run -it --rm \
 		--ipc=host \
   		--network=host \
   		-v ./:/app/ \
   		--name $(CONTAINER_NAME) \
-  		$(IMAGE_NAME) chainlit run app.py
+  		$(IMAGE_NAME) chainlit run src/app.py
+
+stop:
+	docker stop $(CONTAINER_NAME)
 
 
-full_deploy_local:
+ansible_external_deploy_local:
 	ansible-playbook -v -i deploy/ansible/inventory.ini  deploy/ansible/deploy_local.yml \
-		-e docker_image=$(IMAGE_NAME) \
-		-e docker_tag=$(DOCKER_TAG) \
-		-e docker_registry_user=$(CI_REGISTRY_USER) \
-		-e docker_registry_password=$(CI_REGISTRY_PASSWORD) \
-		-e docker_registry=$(CI_REGISTRY) \
-		-e playbook_dest=$(PWD)/deploy/ansible/playbook \
-		-e source_dir=$(PWD)/deploy/ansible/templates \
-		-e root=$(PWD)
+		--skip-tags "destroy"$(ANSIBLE_FLAGS)
 
-deploy_local:
+ansible_deploy_local:
 	ansible-playbook -v -i deploy/ansible/inventory.ini  deploy/ansible/deploy_local.yml \
 		--skip-tags "pull","destroy","prepare_external" $(ANSIBLE_FLAGS)
 
-stop_local:
+ansible_stop_local:
 	ansible-playbook -v -i deploy/ansible/inventory.ini  deploy/ansible/deploy_local.yml --tags 'destroy' $(ANSIBLE_FLAGS)
+
+create_env:
+	cp .env_template .env

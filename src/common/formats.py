@@ -1,8 +1,6 @@
 from langchain_community.document_loaders.base import BaseLoader
+from langchain.document_loaders import CSVLoader, EverNoteLoader, TextLoader, PyPDFLoader
 from langchain.document_loaders import (
-    CSVLoader,
-    EverNoteLoader,
-    TextLoader,
     UnstructuredEPubLoader,
     UnstructuredHTMLLoader,
     UnstructuredMarkdownLoader,
@@ -10,22 +8,21 @@ from langchain.document_loaders import (
     UnstructuredPowerPointLoader,
     UnstructuredWordDocumentLoader,
     UnstructuredURLLoader,
-    PyPDFLoader
 )
 
-LOADER_MAPPING = {
-    "csv": (CSVLoader, {}),
-    "doc": (UnstructuredWordDocumentLoader, {'mode': "elements"}),
-    "docx": (UnstructuredWordDocumentLoader, {'mode': "elements"}),
-    "enex": (EverNoteLoader, {}),
-    "epub": (UnstructuredEPubLoader, {}),
-    "html": (UnstructuredHTMLLoader, {}),
-    "md": (UnstructuredMarkdownLoader, {}),
-    "odt": (UnstructuredODTLoader, {}),
-    "pdf": (PyPDFLoader, {}),
-    "ppt": (UnstructuredPowerPointLoader, {'mode': "elements"}),
-    "pptx": (UnstructuredPowerPointLoader, {'mode': "elements"}),
-    "txt": (TextLoader, {"encoding": "utf8"}),
+LOADER_MAPPING = {  # noqa: WPS407
+    'csv': (CSVLoader, {}),
+    'doc': (UnstructuredWordDocumentLoader, {'mode': 'elements'}),
+    'docx': (UnstructuredWordDocumentLoader, {'mode': 'elements'}),
+    'enex': (EverNoteLoader, {}),
+    'epub': (UnstructuredEPubLoader, {}),
+    'html': (UnstructuredHTMLLoader, {}),
+    'md': (UnstructuredMarkdownLoader, {}),
+    'odt': (UnstructuredODTLoader, {}),
+    'pdf': (PyPDFLoader, {}),
+    'ppt': (UnstructuredPowerPointLoader, {'mode': 'elements'}),
+    'pptx': (UnstructuredPowerPointLoader, {'mode': 'elements'}),
+    'txt': (TextLoader, {'encoding': 'utf8'}),
 }
 
 
@@ -40,5 +37,5 @@ def get_loader(source: str) -> BaseLoader | None:
 
     mark = source.lower().split('.')[-1]
     if mark in LOADER_MAPPING:
-        loader_cls, kwargs = LOADER_MAPPING[mark]
+        loader_cls, kwargs = LOADER_MAPPING[mark]  # noqa: WPS529
         return loader_cls(source, **kwargs)
