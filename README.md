@@ -1,8 +1,6 @@
 # LLM API Chainlit
 
-QnA система для общения с ИИ ассистентом OpenAI. В интерфейсе раелизована возможность использования документов
-с различными расширениями.
-
+The QnA system for chat with an AI assistant is designed to facilitate seamless interaction by allowing users to query documents with a wide range of extensions. Additionally, the system can be easily customized to incorporate a custom large language model (LLM) with minimal modifications. 
 
 ## Lift off and work cli
 1. Start
